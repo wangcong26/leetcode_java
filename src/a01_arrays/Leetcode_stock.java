@@ -2,7 +2,7 @@ package a01_arrays;
 
 public class Leetcode_stock
 {
-    public int maxProfit(int[] prices)
+    public int maxProfit123a(int[] prices)
     {
         if (prices == null || prices.length < 2) return 0;
         int len = prices.length;
@@ -51,7 +51,7 @@ public class Leetcode_stock
         return res;
     }
 
-    public int maxProfit2(int[] prices)
+    public int maxProfit123b(int[] prices)
     {
         // We need to prepare two arrays
         // First array starts from begin and record the max profit up to current index. It goes forward.
@@ -83,11 +83,88 @@ public class Leetcode_stock
         return max;
     }
 
+    public int maxProfit188a(int k, int[] prices)
+    {
+        if (k == 0 || prices.length < 2) return 0;
+        int[][] max = new int[k + 1][prices.length];
+        for (int trans = 1; trans <= k; trans++)
+        {
+            for (int day = 1; day < prices.length; day++)
+            {
+                int curMax = 0;
+                for (int lastDay = day - 1; lastDay >= 0; lastDay--)
+                {
+                    curMax = Math.max(curMax, getMaxProfitInOneTransaction(lastDay, day, prices) + max[trans - 1][lastDay]);
+                }
+                max[trans][day] = curMax;
+            }
+        }
+        return max[k][prices.length - 1];
+    }
+
+    public int maxProfit188b(int k, int[] prices)
+    {
+        // Value function
+        // no transaction: max[2][4]
+        if (k == 0 || prices == null || prices.length < 2) return 0;
+        int[][] max = new int[k + 1][prices.length];
+        for (int trans = 1; trans <= k; trans++)
+        {
+            int maxRemaining = -prices[0];
+            for (int day = 1; day < prices.length; day++)
+            {   // find max of (have transaction, not have transaction) at day
+                max[trans][day] = Math.max(maxRemaining + prices[day], max[trans][day - 1]);
+                // find the max of remaining which is how much after buying a stock
+                maxRemaining = Math.max(maxRemaining, max[trans - 1][day] - prices[day]);
+            }
+        }
+        return max[k][prices.length - 1];
+    }
+
+    public int maxProfit188c(int k, int[] prices)
+    {
+        // Value function
+        // no transaction: max[2][4]
+        if (k == 0 || prices == null || prices.length < 2) return 0;
+        int[] lastTransMax = new int[prices.length];
+        int[] currentTransMax = new int[prices.length];
+
+        for (int trans = 1; trans <= k; trans++)
+        {
+            int maxRemaining = -prices[0];
+            for (int day = 1; day < prices.length; day++)
+            {   // find max of (have transaction, not have transaction) at day
+                currentTransMax[day] = Math.max(maxRemaining + prices[day], currentTransMax[day - 1]);
+                // find the max of remaining which is how much after buying a stock
+                maxRemaining = Math.max(maxRemaining, lastTransMax[day] - prices[day]);
+            }
+            lastTransMax = currentTransMax;
+            currentTransMax = new int[prices.length];
+        }
+        return lastTransMax[prices.length - 1];
+    }
+
+
+    private int getMaxProfitInOneTransaction(int start, int end, int[] prices)
+    {
+        int max = 0;
+        int low = prices[start];
+        for (int i = start; i <= end; i++)
+        {
+            max = Math.max(max, prices[i] - low);
+            low = Math.min(low, prices[i]);
+        }
+        return max;
+    }
+
     public static void main(String[] args)
     {
         int[] test = new int[]{3, 3, 5, 0, 0, 3, 1, 4};
         Leetcode_stock sol = new Leetcode_stock();
-        System.out.println(sol.maxProfit(test));
-        System.out.println(sol.maxProfit2(test));
+        System.out.println(sol.maxProfit123a(test));
+        System.out.println(sol.maxProfit123b(test));
+        System.out.println(sol.maxProfit188a(3, test));
+        System.out.println(sol.maxProfit188b(3, test));
+        System.out.println(sol.maxProfit188c(3, test));
     }
 }
